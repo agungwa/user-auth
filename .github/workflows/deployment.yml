@@ -83,7 +83,7 @@ jobs:
       - name: Delete old ECR images
         uses: agungwa/ECR-Lifecycle-Manager@v1.1.0
         with:
-            repo_name: eduqat-school
+            repo_name: user
             num_to_keep: 10
             dry_run: false
             delete_untagged_images: true
