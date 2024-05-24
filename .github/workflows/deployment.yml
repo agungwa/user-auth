@@ -119,3 +119,14 @@ jobs:
           service_name: "user-auth-service"
           timeout_cmd: "--timeout"
           timeout: "360"
+  loadTesting:
+    runs-on: ubuntu-latest
+    needs: deployDevelopment
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Execute load tests
+        uses: artilleryio/action-cli@v1
+        with:
+         command: run test/performance/products.yml
