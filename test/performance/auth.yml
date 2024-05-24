@@ -1,0 +1,23 @@
+config:
+  target: "http://user-auth-1729601851.us-east-1.elb.amazonaws.com"
+  phases:
+    - duration: 2
+      arrivalRate: 5
+      name: Warm up
+    - duration: 2
+      arrivalRate: 10
+      rampTo: 150
+      name: Ramp up load
+    - duration: 2
+      arrivalRate: 3
+      maxVusers: 20
+      name: Sustained load
+
+scenarios:
+  - name: "Retrieve data"
+    flow:
+      - post:
+          url: "/auth/login"
+          json:
+            username: testuser
+            password: password123
