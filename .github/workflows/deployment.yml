@@ -1,0 +1,97 @@
+name: Deployment
+on:
+  workflow_dispatch:
+  # Trigger the workflow on push or pull request,
+  # but only for the master branch
+  push:
+    branches:
+      - master
+      - development
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+
+jobs:
+  PushImage:
+    name: Deployment Fargate Actions
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: "yarn"
+      - name: Check NPM Version
+        run: npm -v
+      - name: Instal AWS CLI v2
+        id: install-aws-cli
+        uses: unfor19/install-aws-cli-action@master
+        with:
+          version: 2
+      - name: Configure Credentials CLI
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      - name: Build, Tag, and push image to Amazon ECR Development
+        if: ${{ github.ref == 'refs/heads/master' }}
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          build-args: |
+            PORT=${{ secrets.PORT }}
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_PORT=${{ secrets.DB_PORT }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+          tags: 518947699871.dkr.ecr.us-east-1.amazonaws.com/user:latest
+    #   - name: Delete old ECR images
+    #     uses: agungwa/ECR-Lifecycle-Manager@v1.1.0
+    #     with:
+    #         repo_name: eduqat-school
+    #         num_to_keep: 10
+    #         dry_run: false
+    #         delete_untagged_images: true
+#   deployDevelopment:
+#     if: ${{ github.ref == 'refs/heads/master' }}
+#     name: "Development | Deploy updated container"
+#     needs: PushImage
+#     runs-on: ubuntu-latest
+#     timeout-minutes: 15
+#     steps:
+#       - uses: actions/setup-node@v4
+#         with:
+#           node-version: '18'
+#       - uses: silinternational/ecs-deploy@master
+#         env:
+#           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+#         with:
+#           aws_access_key_cmd: "--aws-access-key"
+#           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws_secret_key_cmd: "--aws-secret-key"
+#           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           skip_deployments_check_cmd: "--skip-deployments-check"
+#           use_latest_task_def_cmd: "--use-latest-task-def"
+#           cluster_cmd: "--cluster"
+#           cluster: "EDU-API-Staging"
+#           image_cmd: "--image"
+#           image: "518947699871.dkr.ecr.ap-southeast-1.amazonaws.com/eduqat-school:latest"
+#           region_cmd: "--region"
+#           region: ${{ secrets.AWS_REGION }}
+#           service_name_cmd: "--service-name"
+#           service_name: "EDU-School-Service"
+#           timeout_cmd: "--timeout"
+#           timeout: "360"
