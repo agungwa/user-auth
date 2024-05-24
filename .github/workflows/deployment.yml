@@ -40,6 +40,7 @@ jobs:
         run: yarn test
   PushImage:
     name: Deployment Fargate Actions
+    needs: unitTesting
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
