@@ -10,5 +10,4 @@ const pool = mariadb.createPool({
     port: process.env.DB_PORT,
     connectionLimit: 20
 });
-console.log(process.env)
 export default pool;
