@@ -21,7 +21,7 @@ async function getProductById(req, res) {
         conn = await pool.getConnection();
         const result = await conn.query('SELECT * FROM product WHERE productID = ?', [productId]);
         if (!result[0]) {
-            return res.status(404).send('Product not found');
+            return res.status(404).send({message:'Product not found'});
         }
         res.json(result[0]);
     } catch (err) {
